@@ -12,7 +12,7 @@
     password : str/lenlim(8, 15)
     phone : str/lenlim(8, 15)
     age : int/lim(18, 99)
-    height : float/lim(1, 11) #in feet
+    score : float/lim(0, 10) # can be a decimal value
     '''
 )
 def abc():
