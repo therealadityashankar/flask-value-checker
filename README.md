@@ -12,7 +12,6 @@
     password : str/lenlim(8, 15)
     phone : str/lenlim(8, 15)
     age : int/lim(18, 99)
-    wannaPlay : bool
     '''
 )
 def abc():
