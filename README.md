@@ -19,10 +19,8 @@ def abc():
 ```
 
 ## format of the decorator
-argument 1 : decorator method,
-argument 2 : parameters required,
-             checks form in case of "POST" or "PUT" request,
-             querystring otherwise for "GET"
+- argument 1 : decorator method,
+- argument 2 : parameters required, checks form in case of "POST" or "PUT" request, querystring otherwise for "GET"
 
 ### Rules:
 - different parameters are separated by a newline
