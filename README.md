@@ -12,6 +12,7 @@
     password : str/lenlim(8, 15)
     phone : str/lenlim(8, 15)
     age : int/lim(18, 99)
+    height : float/lim(1, 11) #in feet
     '''
 )
 def abc():
@@ -20,13 +21,13 @@ def abc():
 
 ## format of the decorator
 - argument 1 : decorator method,
-- argument 2 : parameters wanted, checks form in case of "POST" or "PUT" request, querystring otherwise for "GET"
+- argument 2 : parameters wanted, and their attributes, in the mentioned format, checks form in case of "POST" or "PUT" request, querystring otherwise for "GET"
 
 ### Rules:
 - different parameters are separated by a newline
 - the parameter and its rules are separated by an `:`
 - rule conditions are separated by an `/`
-- the first condition should be the type of the required value, `str` or `int`
+- the first condition should be the type of the required value, `str`, `int` or `float`
 
 ## Dev-docs
 - codestyle : Numpydoc
