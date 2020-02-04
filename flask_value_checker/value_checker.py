@@ -1,90 +1,66 @@
-"""
-all the code behind the 'check_values_exist' decorator
-"""
-from functools import wraps
-from flask import jsonify, request, Response
-from .value_checker_class import ValueChecker
-
-import json
-from .restrictions import errors
 from . import restrictions
+from flask import request
 import textwrap
+import colorama
 
 
-def check_values_exist(check_for_method, value):
-    '''
-    check if values exist if the method is followed,
-    NOTE: if any other method is followed, does not raise
-          an error
+class ValueChecker:
+    def __init__(self, text: str):
+        """
+        create value checkers from text
+        """
+        self.checkers = restrictions.make_restrictions(text)
 
-    Parameters
-    ----------
-    check_for_method : str
-        the method to check parameters
+    def check_for(self, multidict):
+        """
+        checks if there are errors in the request,
 
-    value : str
-        check strings, must be in the format mentioned
+        Returns
+        -------
+        dict or None
+            dict or None : dict if there are errors, None if there are no errors
+        """
+        err_fields = {}
+        has_errors = False
 
-    HTTP-Returns
-    ------------
-    400
-        on failure, the response will be similar to,
+        for key, checker in self.checkers.items():
+            is_valid, message = checker.check_for(multidict)
 
-        {
-            "error": {
-                "code": "MALFORMED_OR_MISSING_PARAMETERS",
-                "message": "one or more fields we're either missing or malformed",
-                "fields": {
-                    "email" : "missing parameter, parameter is required",
-                    "firstName" : "name has to be under 15 characters",
-                    "age" : "parameter has to be of type 'int'"
-                }
-            }
-        }
+            if not is_valid:
+                err_fields[key] = message
+                has_errors = True
 
-    *
-        or whatever the original function returns
+        if has_errors:
+            return err_fields
+        else:
+            return None
 
-        *
+    def check(self):
+        """
+        check if it the parameter has been written correctly or not
+        """
+        if request.method in ["POST", "PUT"]:
+            return self.check_for(request.form)
+        else:
+            return self.check_for(request.args)
 
+    def __repr__(self):
+        checkers_text = ""
+        for i, (checker_param, checker) in enumerate(self.checkers.items()):
+            if not i == 0:
+                checkers_text += "\n"
+                checkers_text += "                "
+            checkers_text += repr(checker)
 
-    Example
-    -------
-    >>> @app.route('/abc')
-    ... @check_values_exist(
-    ...     'POST', """
-    ...     firstName : str/length_range(0, 18)/required
-    ...     middleName : str
-    ...     lastName : str
-    ...     email : str/required
-    ...     password : str/length_range(8, 25)/required
-    ...     phone : str/length_range(8, 25)/required
-    ...     age : int/range(18, 999)
-    ...     password : str/length_range(8, 25)/required
-    ...     height : float/range(1, 11)
-    ...     """
-    ... )
-    ... def abc():
-    ...     ...
-    ...     ...
-    '''
-    checker = ValueChecker(value)
+        Fore = colorama.Fore
+        Back = colorama.Back
+        Style = colorama.Style
 
-    def decorator(f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            if not request.method == check_for_method:
-                return f(*args, **kwargs)
-
-            has_errors, final_message = checker.check()
-
-            if has_errors:
-                return Response(
-                    json.dumps(final_message), status=400, mimetype="application/json"
-                )
-            else:
-                return f(*args, **kwargs)
-
-        return wrapper
-
-    return decorator
+        return textwrap.dedent(
+            f"""\
+        <{Fore.YELLOW}{self.__class__.__name__}{Style.RESET_ALL}
+            checkers:
+                {checkers_text}
+        >
+        """
+        )

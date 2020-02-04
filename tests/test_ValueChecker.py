@@ -13,10 +13,6 @@ import random
 import string
 import pytest
 
-default_limits = """
-    str : lenlim(0, 500)
-"""
-
 test_restriction_code = """
     # some simple data for tests here
     firstName : str/lenlim(5, 15) # a random comment
@@ -72,7 +68,6 @@ def run_tests_for_param(param, tests, pre_func=None):
         if expected_output is None:
             assert errs is None, bad_err_text
         else:
-            errs = errs["error"]["fields"]
             assert errs[param] == expected_output, bad_err_text
 
 
@@ -103,7 +98,7 @@ def test_simple_fail():
     errors = checker.check_for(test_dict)
     assert errors is not None
 
-    fields = errors["error"]["fields"]
+    fields = errors
     assert "age" in fields
     assert len(fields.items()) == 1
 
