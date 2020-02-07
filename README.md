@@ -1,6 +1,14 @@
 # Flask-value-checker :mag_right:
 Imaging web form checking, but now imagine that it was easy and comfy
 
+## Installation
+Install simply using pip:
+
+```
+pip install flask-value-checker
+```
+
+
 ## Example usage
 ```python
 from flask_value_checker import Invigilator
@@ -42,7 +50,13 @@ Note: this error can [be customized](#custom-error-showing)
 }
 ```
 ---
-## function docs :notebook_with_decorative_cover: :notebook: :closed_book: :blue_book:
+## Navigation
+- [Function docs](#function-docs)
+- [Field name attribute docs][#field-name-attribute-docs]
+- [Guide][#guide]
+
+---
+## Function docs :notebook_with_decorative_cover: :notebook: :closed_book: :blue_book:
 <a name="custom-error-showing"></a>
 ### Invigilator(err_function=None)
 - **Type** : `function` or `None`
@@ -56,29 +70,33 @@ def custom_error_shower(errors):
 ```
 
 ### Invigilator.check(http_methods, checker_str)
-##### http_methods:
+#### http_methods:
 - **Type** : `str` or `list of strs`
 - **Description** : HTTP methods to check for,
 
  **NOTE**: if the http method to check for is not present in methods, the decorated function will be called normally and no checks will be performed
 - **Example** : `'GET'`, `'POST'`, `['GET', 'POST']`
 
+#### checker_str
+- **Type** : `str`
+- **Description** : the form attributes and their restrictions written in the prescribed format, [See Here](#writing-parameters)
+
 ---
-## field name attribute docs
+## Field name attribute docs :notebook_with_decorative_cover: :notebook: :closed_book: :blue_book:
 all top attributes (str, int, float) should not have any parameters,
 
 **Note**: top attributes should be placed first, then its sub attributes
 should be placed
 ### str
-##### lenlim(min, max)
+#### lenlim(min, max)
 the minimum and maximum length the fields string can be
 - **min** : `int` or the value `inf`, the minimum accepted string length
 - **max** : `int` or the value `inf` (see [example-usage](#example-usage)), the maximum accepted string length
 
-##### optional
+#### optional
 is the attribute optional ?
 
-##### accept(accepted_vals)
+#### accept(accepted_vals)
 values that can be accepted when using the field name
 - **accepted_vals**: `list of strings`, the acceptable values for the parameter
 
@@ -88,18 +106,14 @@ values that can be accepted when using the field name
 **float** specifies that it can be decimal,
 
 both attributes have the same sub-attributes
-##### lim(min, max)
+#### lim(min, max)
 the limits that the numeric values can range between
 - **min** : `float` or the value `inf`, the minimum accepted numeric value
 - **max** : `float` or the value `inf` (see [bigger-full-example](#bigger-full-example)), the maximum accepted numeric value
 
-##### optional
+#### optional
 is the attribute optional ?
 
----
-##### checker_str
-- **Type** : `str`
-- **Description** : the form attributes and their restrictions written in the prescribed format, [See Here](#writing-parameters)
 ---
 ## Guide :metal:
 
