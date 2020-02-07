@@ -52,10 +52,11 @@ Note: this error can [be customized](#custom-error-showing)
 ---
 ## Navigation
 - [Function docs](#function-docs)
-- [Field name attribute docs][#field-name-attribute-docs]
-- [Guide][#guide]
+- [Field name attribute docs](#field-name-attribute-docs)
+- [Guide](#guide)
 
 ---
+<a name="function-docs"></a>
 ## Function docs :notebook_with_decorative_cover: :notebook: :closed_book: :blue_book:
 <a name="custom-error-showing"></a>
 ### Invigilator(err_function=None)
@@ -82,6 +83,7 @@ def custom_error_shower(errors):
 - **Description** : the form attributes and their restrictions written in the prescribed format, [See Here](#writing-parameters)
 
 ---
+<a name="field-name-attribute-docs"></a>
 ## Field name attribute docs :notebook_with_decorative_cover: :notebook: :closed_book: :blue_book:
 all top attributes (str, int, float) should not have any parameters,
 
@@ -115,6 +117,7 @@ the limits that the numeric values can range between
 is the attribute optional ?
 
 ---
+<a name="guide"></a>
 ## Guide :metal:
 
 ### Writing parameters:
