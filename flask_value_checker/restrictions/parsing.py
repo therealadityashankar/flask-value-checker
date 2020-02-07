@@ -1,47 +1,10 @@
-from .restrictions import *
+import textwrap
+import string
+
+from . import restrictions
 from . import errors
 
-
-def make_restriction(raw_line: str):
-    """
-    make a restriction, depending on the line
-
-    lines must not have comments, and must have a restriction in
-    the string format
-
-    Returns
-    -------
-    like str, GenericRestriction
-        if parameter is present,
-    else
-        None, None
-    """
-    original_raw_line = raw_line
-    raw_line = clean_code_line(raw_line)
-    if raw_line == "":
-        return None, None
-
-    restriction_classes = get_restriction_classes()
-    parameter, type_str, attrs = get_details_from_raw_restriction(raw_line)
-    for R_class in restriction_classes:
-        if R_class.type_keyword == type_str:
-            checker = R_class(original_raw_line, parameter, attrs)
-            break
-    else:
-        known_value_types = [r.type_keyword for r in restriction_classes]
-        raise errors.FlaskValueCheckerValueError(
-            textwrap.dedent(
-                f"""\
-        unknown value type {type_str},
-        please choose a value type out of {known_value_types}
-
-        Error in line:
-        {raw_line}
-        """
-            )
-        )
-
-    return parameter, checker
+NUMBER_VALID_VALS = string.digits + "-" + "inf"
 
 
 def make_restrictions(raw_lines: str):
@@ -49,46 +12,371 @@ def make_restrictions(raw_lines: str):
     checkers = {}
 
     for line in raw_lines:
-        parameter, checker = make_restriction(line)
-        if parameter:
-            checkers[parameter] = checker
+        rest_parser = RestrictionParser(line)
+        if not (rest_parser.is_comment_line or rest_parser.is_empty_line):
+            field_name, checker = rest_parser.get_appropriate_restriction()
+            checkers[field_name] = checker
 
     return checkers
 
 
-def clean_code_line(raw_line: str):
+class RestrictionParser:
     """
-    remove comments and spaces from code line
+    parser to parse flask-value-checker
+
+    format <StringRestrictionText>:
+        <parameter_name> : <attr>/<attr>/<attr>
+
+    format <attr>:
+        <attr_name>
+        <attr_name>()
+        <attr_name>(<val_1>, <val_2>, ...)
+
+    format <val>:
+        str, list, or
     """
-    try:
-        comment_start = raw_line.index("#")
-        raw_line = raw_line[:comment_start]
-    except ValueError:
-        pass
 
-    raw_line = raw_line.strip()
-    return raw_line
+    def __init__(self, raw_line):
+        self.raw_line = raw_line
+        self.curr_pos = 0
 
+        self.field_name = None
+        self.attrs = []
 
-def get_details_from_raw_restriction(raw_line: str):
-    line = raw_line.strip()
-    args = line.split(":")
+        self.is_comment_line = False
 
-    if len(args) != 2:
-        raise errors.FlaskValueCheckerSyntacticError(
+        if len(raw_line):
+            self.is_empty_line = False
+            self.parse()
+        else:
+            self.is_empty_line = True
+
+    def get_appropriate_restriction(self):
+        """
+        get the appropriate restriction based on the
+        first attribute
+        """
+        # ensure the first argument (i.e. type argument) has not parameters
+        type_str, type_attrs = self.attrs[0]
+
+        if type_attrs:
+            raise errors.FlaskValueCheckerSyntaxError(
+                textwrap.dedent(
+                    f"""\
+                    the type attribute should NOT have attributes,
+                    (i.e. here, {type_str} should not have paranthesis, i.e.
+                    the ({type_attrs}) part)
+                    """
+                )
+            )
+
+        r_attrs = self.attrs[1:]
+
+        restriction_classes = restrictions.get_restriction_classes()
+
+        for RClass in restriction_classes:
+            if RClass.type_keyword == type_str:
+                checker = RClass(self.raw_line, self.field_name, r_attrs)
+                break
+        else:
+            known_value_types = [r.type_keyword for r in restriction_classes]
+            raise errors.FlaskValueCheckerValueError(
+                textwrap.dedent(
+                    f"""\
+            unknown value type {type_str},
+            please choose a value type out of {known_value_types}
+
+            Error in line:
+            {self.raw_line}
+            """
+                )
+            )
+
+        return self.field_name, checker
+
+    def parse(self):
+        self.minus_space_gulper()
+        if self.curr_char == "#":
+            self.is_comment_line = True
+        elif self.curr_char is None:
+            self.is_empty_line = True
+        else:
+            self.set_field_name()
+            self.minus_space_gulper()
+            self.parse_attrs()
+
+    @property
+    def curr_char(self):
+        try:
+            return self.raw_line[self.curr_pos]
+        except IndexError:
+            return None
+
+    def gulp_char(self):
+        self.curr_pos += 1
+
+    def minus_space_gulper(self):
+        self.gulp_char()
+        while self.curr_char == " ":
+            self.gulp_char()
+
+    def set_field_name(self):
+        self.field_name = self.parse_variable()
+        try:
+            self.curr_pos = self.raw_line.index(":")
+        except:
+            self.raise_syntax_error(
+                "there must be a `:`  to seperate the param and its attributes"
+            )
+
+    def parse_attrs(self):
+        attr_just_found = False
+        while True:
+            if attr_just_found:
+                if self.curr_char == "/":
+                    attr_just_found = False
+                    self.minus_space_gulper()
+                elif self.curr_char is None or self.curr_char == "#":
+                    break
+                else:
+                    self.raise_syntax_error(
+                        f"attributes must end with a '/' or, \
+    in case they are the last character, spaces or nothing,\
+    or a '#' if its before a comment,\
+    they should not end with a {self.curr_char}"
+                    )
+
+            else:
+                attr = self.parse_attr()
+                self.attrs.append(attr)
+                attr_just_found = True
+
+    def parse_attr(self):
+        name = ""
+        params = []
+
+        if self.curr_char in string.ascii_lowercase:
+            name = self.parse_variable()
+        else:
+            self.raise_syntax_error(
+                "invalid attribute name (attributes can only start with a lower case letter)"
+            )
+
+        if self.curr_char == " ":
+            self.minus_space_gulper()
+
+        if self.curr_char == "(":
+            params = self.parse_attr_params()
+
+        if self.curr_char == " ":
+            self.minus_space_gulper()
+
+        if self.curr_char == "/" or self.curr_char == None or self.curr_char == "#":
+            return name, params
+        else:
+            self.raise_syntax_error(
+                f"attributes must end with a '/' or, \
+in case they are the last character, spaces or nothing,\
+or a '#' if its before a comment,\
+they should not end with a {self.curr_char}"
+            )
+
+    def parse_attr_params(self):
+        self.check_starting_character("(", "attribute parameter")
+        # remove the first "("
+        self.gulp_char()
+
+        first_param = self.parse_attr_param()
+        params = [first_param]
+
+        while True:
+            if self.curr_char == ",":
+                self.minus_space_gulper()
+                param = self.parse_attr_param()
+                params.append(param)
+            elif self.curr_char == ")":
+                self.gulp_char()
+                break
+            else:
+                self.raise_syntax_error("parser error, invalid character")
+
+        return tuple(params)
+
+    def parse_attr_param(self):
+        value_just_found = False
+        while True:
+            if value_just_found:
+                if self.curr_char == "," or self.curr_char == ")":
+                    break
+                else:
+                    self.raise_syntax_error(
+                        "parameters for attributes should be split with a `,` or end with a `)`"
+                    )
+            else:
+                if self.curr_char in NUMBER_VALID_VALS:
+                    val = self.parse_number()
+                elif self.curr_char == "[":
+                    val = self.parse_list()
+                else:
+                    self.raise_syntax_error(
+                        f"invalid value for parameter to start with `{self.curr_char}`"
+                    )
+                break
+
+            self.gulp_char()
+        return val
+
+    def parse_list(self):
+        self.check_starting_character("[", "list")
+        # remove the first `[`
+        self.gulp_char()
+
+        vals = []
+        element_just_found = False
+        while True:
+            if element_just_found:
+                if self.curr_char == ",":
+                    self.minus_space_gulper()
+                    element_just_found = False
+                elif self.curr_char == "]":
+                    self.gulp_char()
+                    break
+                else:
+                    self.raise_syntax_error(
+                        "elements in list should be seperated by a comma"
+                    )
+
+            if self.curr_char == '"' or self.curr_char == "'":
+                val = self.parse_string()
+                vals.append(val)
+                element_just_found = True
+
+            elif self.curr_char in NUMBER_VALID_VALS:
+                val = self.parse_number()
+                vals.append(val)
+                element_just_found = True
+            else:
+                self.raise_syntax_error("invalid character")
+        return vals
+
+    def parse_variable_or_number(self):
+        var_name = ""
+        while True:
+            if self.curr_char is None:
+                break
+
+            if self.curr_char in string.ascii_letters + string.digits + "_-":
+                var_name += self.curr_char
+            else:
+                break
+            self.gulp_char()
+
+        try:
+            var = float(var_name)
+        except ValueError:
+            var = var_name
+        return var
+
+    def parse_variable(self):
+        var = self.parse_variable_or_number()
+        if type(var) == str:
+            return var
+        else:
+            self.raise_syntax_error("value should be a variable and not a number")
+
+    def parse_number(self):
+        var = self.parse_variable_or_number()
+        if type(var) == float:
+            return var
+        else:
+            self.raise_syntax_error("value should be a number and not a varible")
+
+    def parse_string(self):
+        start_char = self.curr_char
+
+        self.check_starting_character(["'", '"'], "string")
+        # remove the first `"` or `'`
+        self.gulp_char()
+
+        val = ""
+
+        while True:
+            if self.curr_char == start_char:
+                self.gulp_char()
+                break
+            elif self.curr_char == "\\":
+                self.gulp_char()
+                if self.curr_char in ["'", '"', "\\"]:
+                    val += self.curr_char
+                else:
+                    self.raise_syntax_error(f"invalid character : \\{self.curr_char}")
+            elif self.curr_char is None:
+                self.raise_syntax_error("unterminated string")
+            else:
+                val += self.curr_char
+
+            self.gulp_char()
+        return val
+
+    def check_starting_character(self, chars_to_check, item_type):
+        if not isinstance(chars_to_check, list):
+            chars_to_check = [chars_to_check]
+
+        if not self.curr_char in chars_to_check:
+            self.raise_internal_parser_error(
+                "the starting character should be  in {chars_to_check} for a(n) {item_type}"
+            )
+
+    def raise_syntax_error(self, error_details):
+        raise errors.FlaskValueCheckerSyntaxError(
             textwrap.dedent(
                 f"""\
-        the value checker format restricts exactly one `:` per line,
-        error in line -
-        {raw_line}"""
+        {error_details}
+
+        error parsing line
+        error character position : {self.curr_pos}
+
+        Error in line :
+        {self.raw_line}
+        {" "*self.curr_pos + "^"}
+
+        at character : `{self.curr_char}`
+        """
             )
         )
 
-    parameter, restrictions_raw = args
-    parameter = parameter.strip()
-    restrictions_raw = restrictions_raw.strip()
-    restriction_vals = restrictions_raw.split("/")
-    restriction_vals = [restriction_val.strip() for restriction_val in restriction_vals]
-    res_type = restriction_vals[0]
-    attrs = restriction_vals[1:]
-    return parameter, res_type, attrs
+    def raise_internal_parser_error(self, error_details):
+        raise errors.FlaskValueCheckerSyntaxError(
+            textwrap.dedent(
+                f"""\
+        {error_details}
+
+        Internal Parser Error
+        (this is NOT the fault of the programmer USING the library,
+         only the programmer who WROTE the library)
+        error character position : {self.curr_pos}
+
+        Error in line :
+        {self.raw_line}
+        {" "*self.curr_pos + "^"}
+
+        at character : `{self.curr_char}`
+        """
+            )
+        )
+
+    def __repr__(self):
+        if self.is_empty_line:
+            return "<{self.__class__.__name__} empty line>"
+        elif self.is_comment_line:
+            return "<{self.__class__.__name__} comment line>"
+        attrs_text = ""
+
+        for attr in self.attrs:
+            attr_name, params = attr
+            if params:
+                attrs_text += f"[{attr_name} params: {params}] "
+            else:
+                attrs_text += f"[{attr_name}] "
+
+        return f"<{self.__class__.__name__} {self.field_name} ({attrs_text})>"

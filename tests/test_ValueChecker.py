@@ -5,7 +5,7 @@ TODO TESTS:
 """
 from helper import (
     ValueChecker,
-    FlaskValueCheckerSyntacticError,
+    FlaskValueCheckerSyntaxError,
     FlaskValueCheckerValueError,
 )
 
@@ -24,6 +24,9 @@ test_restriction_code = """
     age : int/lim(18, 99)
     height : float/lim(1, inf)/optional
     someNegativeFloat : float/optional/lim(-inf, 0)
+    team : str/accept(["red", "blue", "yellow", "green", "orange"])
+    acceptTermsAndConditions : str/accept(['on'])/optional
+    someEdgeCase : str/accept(['on'])
 """
 
 checker = ValueChecker(test_restriction_code)
@@ -34,6 +37,8 @@ sample_test_dict = {
     "phone": "9120921022",
     "age": "76",
     "password": "12345678",
+    "team": "red",
+    "someEdgeCase": "on",
 }
 
 
@@ -42,7 +47,8 @@ def create_sample_dict(modifications=None):
     test_dict = sample_test_dict.copy()
     for key, value in modifications.items():
         if value is None:
-            del test_dict[key]
+            if key in test_dict:
+                del test_dict[key]
         else:
             test_dict[key] = value
     return test_dict
@@ -175,6 +181,45 @@ def test_string_length_limits():
     run_tests_for_param(modif_param, tests, pre_func)
 
 
+def test_string_accept():
+    modif_param = "team"
+    invalid_value_error = (
+        "value must be one from the list ['red', 'blue', 'yellow', 'green', 'orange']"
+    )
+
+    tests = [
+        ["red", None],
+        ["blue", None],
+        ["Green", invalid_value_error],
+        ["iojoidas", invalid_value_error],
+        ["", invalid_value_error],
+    ]
+
+    run_tests_for_param(modif_param, tests)
+
+    modif_param = "acceptTermsAndConditions"
+    invalid_value_error = "value should be 'on', or the field should not be submitted"
+    tests = [
+        ["on", None],
+        [None, None],
+        ["avcdscs", invalid_value_error],
+        ["", invalid_value_error],
+    ]
+
+    run_tests_for_param(modif_param, tests)
+
+    modif_param = "someEdgeCase"
+    invalid_value_error = "value should be 'on'"
+    tests = [
+        ["on", None],
+        ["avcdscs", invalid_value_error],
+        ["", invalid_value_error],
+        [None, invalid_value_error],
+    ]
+
+    run_tests_for_param(modif_param, tests)
+
+
 def test_int_limits():
     def pre_func(val):
         if type(val) != tuple:
@@ -252,7 +297,7 @@ def test_bad_syntax():
         height : float/lim(1, inf)/optional
         someNegativeFloat : float/optional/lim(-inf, 0)
     """
-    with pytest.raises(FlaskValueCheckerSyntacticError):
+    with pytest.raises(FlaskValueCheckerSyntaxError):
         checker = ValueChecker(bad_syntax_1)
 
     bad_syntax_2 = """
@@ -289,3 +334,33 @@ def test_bad_syntax():
     """
     with pytest.raises(FlaskValueCheckerValueError):
         checker = ValueChecker(bad_syntax_4)
+
+    bad_syntax_5 = """
+        # bad parameter name here
+        firstName : str/accepts([,])
+        middleName : str/lenlim(5, inf)/optional
+        lastName : str/optional
+        email : str
+    """
+    with pytest.raises(FlaskValueCheckerSyntaxError):
+        checker = ValueChecker(bad_syntax_5)
+
+    bad_syntax_6 = """
+        # bad parameter name here
+        firstName : str/accepts([abc)
+        middleName : str/lenlim(5, inf)/optional
+        lastName : str/optional
+        email : str
+    """
+    with pytest.raises(FlaskValueCheckerSyntaxError):
+        checker = ValueChecker(bad_syntax_6)
+
+    bad_syntax_7 = """
+        # bad parameter name here
+        firstName : str/accepts(["abc'])
+        middleName : str/lenlim(5, inf)/optional
+        lastName : str/optional
+        email : str
+    """
+    with pytest.raises(FlaskValueCheckerSyntaxError):
+        checker = ValueChecker(bad_syntax_7)

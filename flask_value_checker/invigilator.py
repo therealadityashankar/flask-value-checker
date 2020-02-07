@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import jsonify, request, Response
+from flask import jsonify, request, Response, g
 from .value_checker import ValueChecker
 
 import json
@@ -115,6 +115,7 @@ class Invigilator:
         def decorator(f):
             @wraps(f)
             def wrapper(*args, **kwargs):
+                g.value_checker = checker
                 if not request.method in check_for_method:
                     return f(*args, **kwargs)
 

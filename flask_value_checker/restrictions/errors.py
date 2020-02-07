@@ -1,16 +1,20 @@
 class FlaskValueCheckerError(Exception):
-    '''base flask value checker error'''
+    """base flask value checker error"""
+
     pass
 
 
-class FlaskValueCheckerSyntacticError(FlaskValueCheckerError):
-    '''
+class FlaskValueCheckerSyntaxError(FlaskValueCheckerError):
+    """
     for syntactic errors
-    '''
+    """
+
     pass
-    
+
+
 class FlaskValueCheckerValueError(ValueError):
-    '''
+    """
     value error for flask value checker
-    '''
+    """
+
     pass

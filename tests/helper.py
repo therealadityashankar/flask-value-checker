@@ -7,7 +7,7 @@ sys.path.append(main_dir)
 from flask_value_checker import (
     restrictions,
     ValueChecker,
-    FlaskValueCheckerSyntacticError,
+    FlaskValueCheckerSyntaxError,
     FlaskValueCheckerValueError,
     Invigilator,
 )

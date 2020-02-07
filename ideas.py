@@ -3,7 +3,7 @@
 developmental future ideas, for fun
 """
 from flask_value_checker import Invigilator
-from flask import Flask, request, Response
+from flask import Flask, request, Response, g
 
 import json
 
@@ -19,7 +19,7 @@ def custom_error_shower(errors):
 invigilator = Invigilator(custom_error_shower)
 
 
-@app.route("/abc", methods=["POST"])
+@app.route("/", methods=["POST"])
 @invigilator.check(
     "POST",
     """
@@ -30,15 +30,15 @@ invigilator = Invigilator(custom_error_shower)
     password : str/lenlim(8, 15)/optional
     phone : str/lenlim(8, 15)/optional
     age : int/lim(18, 99)/optional
-
-    # accept parameter
-    # for when only limited values are accepted
-    preferedState : str/optional #/accept(['TamilNadu', 'Kerela'])
+    preferedState : str/optional/accept(['TamilNadu', 'Kerela'])
+    stayLoggedIn : str/accept(['on'])/optional
     """,
 )
 def abc():
+    print(g.value_checker)
     form = request.form
-    return f'hi! {form["firstName"]}'
+    stay_logged_in = form.get("stayLoggedIn", "off")
+    return f'hi! {form["firstName"]}, stay logged in : {stay_logged_in}'
 
 
 if __name__ == "__main__":

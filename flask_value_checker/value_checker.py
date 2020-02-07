@@ -49,7 +49,7 @@ class ValueChecker:
         for i, (checker_param, checker) in enumerate(self.checkers.items()):
             if not i == 0:
                 checkers_text += "\n"
-                checkers_text += "                "
+                checkers_text += "            "
             checkers_text += repr(checker)
 
         Fore = colorama.Fore
@@ -58,9 +58,10 @@ class ValueChecker:
 
         return textwrap.dedent(
             f"""\
-        <{Fore.YELLOW}{self.__class__.__name__}{Style.RESET_ALL}
-            checkers:
-                {checkers_text}
-        >
+        {Fore.GREEN}<{self.__class__.__name__}{Style.RESET_ALL}
+          {Fore.YELLOW}<checkers>{Style.RESET_ALL}
+            {checkers_text}
+          {Fore.YELLOW}</checkers>{Style.RESET_ALL}
+        {Fore.GREEN}>{Style.RESET_ALL}
         """
         )
