@@ -6,6 +6,7 @@ build-backend = "flit_core.buildapi"
 module = "flask_value_checker"
 author = "Aditya Shankar"
 author-email = "aditniru@gmail.com"
+dist-name = "flask-value-checker"
 home-page = "https://github.com/therealadityashankar/flask-value-checker"
 requires=[
     "Flask>=1.1.1",
