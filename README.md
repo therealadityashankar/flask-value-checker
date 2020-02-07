@@ -25,7 +25,7 @@ app.run()
 ```
 
 #### example default error
-Note: this error can [be customized](custom-error-showing)
+Note: this error can [be customized](#custom-error-showing)
 
 ```javascript
 {
@@ -54,8 +54,17 @@ def custom_error_shower(errors):
         json.dumps({"errors": errors,}), status=400, mimetype="application/json"
     )
 ```
+
+### Invigilator.check(http_methods, checker_str)
+##### http_methods:
+- **Type** : `str` or `list of strs`
+- **Description** : HTTP methods to check for,
+
+ **NOTE**: if the http method to check for is not present in methods, the decorated function will be called normally and no checks will be performed
+- **Example** : `'GET'`, `'POST'`, `['GET', 'POST']`
+
 ---
-## field_name attribute docs
+## field name attribute docs
 all top attributes (str, int, float) should not have any parameters,
 
 **Note**: top attributes should be placed first, then its sub attributes
@@ -64,7 +73,7 @@ should be placed
 ##### lenlim(min, max)
 the minimum and maximum length the fields string can be
 - **min** : `int` or the value `inf`, the minimum accepted string length
-- **max** : `int` or the value `inf` (see [example-usage](example-usage)), the maximum accepted string length
+- **max** : `int` or the value `inf` (see [example-usage](#example-usage)), the maximum accepted string length
 
 ##### optional
 is the attribute optional ?
@@ -82,20 +91,12 @@ both attributes have the same sub-attributes
 ##### lim(min, max)
 the limits that the numeric values can range between
 - **min** : `float` or the value `inf`, the minimum accepted numeric value
-- **max** : `float` or the value `inf` (see [bigger-full-example](bigger-full-example)), the maximum accepted numeric value
+- **max** : `float` or the value `inf` (see [bigger-full-example](#bigger-full-example)), the maximum accepted numeric value
 
 ##### optional
 is the attribute optional ?
 
 ---
-### Invigilator.check(http_methods, checker_str)
-##### http_methods:
-- **Type** : `str` or `list of strs`
-- **Description** : HTTP methods to check for,
-
- **NOTE**: if the http method to check for is not present in methods, the decorated function will be called normally and no checks will be performed
-- **Example** : `'GET'`, `'POST'`, `['GET', 'POST']`
-
 ##### checker_str
 - **Type** : `str`
 - **Description** : the form attributes and their restrictions written in the prescribed format, [See Here](#writing-parameters)
