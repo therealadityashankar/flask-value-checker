@@ -337,7 +337,7 @@ def test_bad_syntax():
 
     bad_syntax_5 = """
         # bad parameter name here
-        firstName : str/accepts([,])
+        firstName : str/accept([,])
         middleName : str/lenlim(5, inf)/optional
         lastName : str/optional
         email : str
@@ -347,7 +347,7 @@ def test_bad_syntax():
 
     bad_syntax_6 = """
         # bad parameter name here
-        firstName : str/accepts([abc)
+        firstName : str/accept([abc)
         middleName : str/lenlim(5, inf)/optional
         lastName : str/optional
         email : str
@@ -357,10 +357,20 @@ def test_bad_syntax():
 
     bad_syntax_7 = """
         # bad parameter name here
-        firstName : str/accepts(["abc'])
+        firstName : str/accept(["abc'])
         middleName : str/lenlim(5, inf)/optional
         lastName : str/optional
         email : str
     """
     with pytest.raises(FlaskValueCheckerSyntaxError):
         checker = ValueChecker(bad_syntax_7)
+
+    bad_syntax_8 = """
+        # bad parameter name here
+        firstName : str/accept(["abc", 124])
+        middleName : str/lenlim(5, inf)/optional
+        lastName : str/optional
+        email : str
+    """
+    with pytest.raises(FlaskValueCheckerValueError):
+        checker = ValueChecker(bad_syntax_8)

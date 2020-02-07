@@ -68,7 +68,7 @@ class GenericRestriction:
             raise errors.FlaskValueCheckerValueError(
                 textwrap.dedent(
                     f"""\
-            {parameter} should have {param_count} value(s),
+            "{parameter}" should have {param_count} value(s),
             it currently has {len(values)} values
 
             error in line:
@@ -100,7 +100,7 @@ class GenericRestriction:
                 raise errors.FlaskValueCheckerValueError(
                     textwrap.dedent(
                         f"""\
-                restriction {parameter} cannot have the value {value},
+                restriction "{parameter}" cannot have the value "{value}",
                 as it cannot be compiled into an `int`(or isn't "inf" i.e. infinity)
 
                 error in line: {self.raw_line}
@@ -115,7 +115,7 @@ class GenericRestriction:
                 raise errors.FlaskValueCheckerValueError(
                     textwrap.dedent(
                         f"""\
-                restriction {parameter} cannot have the value {value},
+                restriction "{parameter}" cannot have the value "{value}",
                 as it isn't of type `float`
 
                 error in line: {self.raw_line}
@@ -129,7 +129,7 @@ class GenericRestriction:
                 raise errors.FlaskValueCheckerValueError(
                     textwrap.dedent(
                         f"""\
-                restriction {parameter} cannot have the value {value},
+                restriction "{parameter}" cannot have the value "{value}",
                 as it isn't if type `list`
 
                 error in line: {self.raw_line}
@@ -150,7 +150,7 @@ class GenericRestriction:
                     raise errors.FlaskValueCheckerValueError(
                         textwrap.dedent(
                             f"""\
-                    restriction {parameter} cannot have the value {value},
+                    restriction "{parameter}" cannot have the value "{value}",
                     as not everything in the list is of type `{list_type}`
 
                     error in line: {self.raw_line}
