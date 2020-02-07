@@ -1,10 +1,7 @@
-"""
-flask value checker,
+"""lets check flask parameters"""
 
-check flask parameters,
+__version__ = "1.0"
 
-read README.md for details
-"""
 from .value_checker import ValueChecker
 from .invigilator import Invigilator
 from .restrictions.errors import *

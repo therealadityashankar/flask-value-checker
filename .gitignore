@@ -4,3 +4,4 @@ venv
 __pycache__
 ideas.py
 ideas_dumb_check.py
+dist

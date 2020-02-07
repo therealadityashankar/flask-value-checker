@@ -8,7 +8,6 @@ then make sure to add it in the restrictions array in the make_restriction
 function
 """
 import textwrap
-import orchid66
 import colorama
 
 from .generic_restriction import GenericRestriction

@@ -1,0 +1,21 @@
+[build-system]
+requires = ["flit_core >=2,<3"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.metadata]
+module = "flask_value_checker"
+author = "Aditya Shankar"
+author-email = "aditniru@gmail.com"
+home-page = "https://github.com/therealadityashankar/flask-value-checker"
+requires=[
+    "Flask>=1.1.1",
+    "colorama>=0.4.3"
+]
+requires-python=">=3.6,<4"
+description-file="README.md"
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
