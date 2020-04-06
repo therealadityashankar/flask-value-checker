@@ -2,7 +2,7 @@ import textwrap
 import string
 
 from . import restrictions
-from . import errors
+from .. import errors
 
 NUMBER_VALID_VALS = string.digits + "-" + "inf"
 

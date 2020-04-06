@@ -1,6 +1,6 @@
 from flask import request
 
-from . import errors
+from .. import errors
 import textwrap
 
 

@@ -12,6 +12,7 @@ from helper import (
 import random
 import string
 import pytest
+import io
 
 test_restriction_code = """
     # some simple data for tests here
@@ -39,6 +40,8 @@ sample_test_dict = {
     "password": "12345678",
     "team": "red",
     "someEdgeCase": "on",
+    "needed_file": (io.BytesIO(b"something"), "file.txt"),
+    "optional_file": (io.BytesIO(b"something"), "other_file.txt"),
 }
 
 
