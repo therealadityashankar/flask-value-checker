@@ -91,15 +91,15 @@ all top attributes (str, int, float) should not have any parameters,
 **Note**: top attributes should be placed first, then its sub attributes
 should be placed
 ### str
-#### lenlim(min, max)
+##### lenlim(min, max)
 the minimum and maximum length the fields string can be
 - **min** : `int` or the value `inf`, the minimum accepted string length
 - **max** : `int` or the value `inf` (see [example-usage](#example-usage)), the maximum accepted string length
 
-#### optional
+##### optional
 is the attribute optional ?
 
-#### accept(accepted_vals)
+##### accept(accepted_vals)
 values that can be accepted when using the field name
 - **accepted_vals**: `list of strings`, the acceptable values for the parameter
 
@@ -109,14 +109,21 @@ values that can be accepted when using the field name
 **float** specifies that it can be decimal,
 
 both attributes have the same sub-attributes
-#### lim(min, max)
+##### lim(min, max)
 the limits that the numeric values can range between
-- **min** : `float` or the value `inf`, the minimum accepted numeric value
-- **max** : `float` or the value `inf` (see [bigger-full-example](#bigger-full-example)), the maximum accepted numeric value
+- **min** : `float` or the value `inf` or `-inf`, the minimum accepted numeric value
+- **max** : `float` or the value `inf` or `-inf` (see [bigger-full-example](#bigger-full-example)), the maximum accepted numeric value
 
-#### optional
+##### optional
 is the attribute optional ?
 
+
+### file
+
+checks if there is a file at a parameter
+
+##### optional
+is the attribute optional ?
 ---
 <a name="guide"></a>
 ## Guide :metal:
@@ -368,7 +375,9 @@ sendNewsletter : str/accept(['on'])/optional
     # but it'll have to be greater than
     # 18, not including 18
     age : int/lim(18.9, inf)
-    score : float/lim(0, 10) # can be a decimal value
+    score : float/lim(0, 10) # can be a decimal value'
+    id_proof_scan : file
+    optional_file : file/optional
     '''
 )
 def abc():
